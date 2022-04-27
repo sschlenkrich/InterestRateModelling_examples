@@ -1,4 +1,3 @@
-#!/usr/bin/python
 
 import pandas
 import QuantLib as ql

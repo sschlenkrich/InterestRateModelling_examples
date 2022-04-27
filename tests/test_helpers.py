@@ -1,6 +1,5 @@
-from calendar import c
 import sys
-sys.path.insert(0, "./")
+sys.path.append('./')
 
 import numpy as np
 import unittest

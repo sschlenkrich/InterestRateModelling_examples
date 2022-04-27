@@ -1,4 +1,3 @@
-#!/usr/bin/python
 
 from scipy.stats import norm
 from scipy.optimize import brentq
