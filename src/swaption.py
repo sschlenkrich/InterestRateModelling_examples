@@ -75,3 +75,19 @@ class Swaption:
         details['payTimes'  ] = np.array(payTimes)
         details['cashFlows'] = np.array(caschflows)
         return details
+
+
+def create_swaption(expiryTerm, swapTerm, discCurve, projCurve, strike='ATM', payerOrReceiver=ql.VanillaSwap.Payer, normalVolatility=0.01):
+    """
+    An easy to use constructor function for convenience.
+    """
+    today      = discCurve.yts.referenceDate()
+    expiryDate = ql.TARGET().advance(today,ql.Period(expiryTerm),ql.ModifiedFollowing)
+    startDate  = ql.TARGET().advance(expiryDate,ql.Period('2d'),ql.Following)
+    endDate    = ql.TARGET().advance(startDate,ql.Period(swapTerm),ql.Unadjusted)
+    if str(strike).upper()=='ATM':
+        swap = Swap(startDate,endDate,0.0,discCurve,projCurve)
+        strike = swap.fairRate()
+    swap = Swap(startDate,endDate,strike,discCurve,projCurve,payerOrReceiver)
+    swaption = swaption = Swaption(swap,expiryDate,normalVolatility)
+    return swaption
