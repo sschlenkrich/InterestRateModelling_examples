@@ -8,6 +8,7 @@ import unittest
 from src.helpers import bachelier_implied_vol
 from src.monte_carlo_simulation import MonteCarloSimulation
 from src.sabr_model import SabrModel
+from src.hull_white_model import HullWhiteModel
 
 def implied_volatility(sim, T, strikes):
     assert sim.times[-1] == T
@@ -25,10 +26,17 @@ def implied_volatility(sim, T, strikes):
          ])
     return vols
 
+class FlatForwardCurve:
+    """A helper class for yield curve."""
+    def __init__(self, forward_rate):
+        self.__forward_rate__ = forward_rate
+        self.discount         = lambda T : np.exp(-self.__forward_rate__*T)
+        self.forwardRate      = lambda T : self.__forward_rate__
+
 
 class TestMonteCarloSimulation(unittest.TestCase):
     """
-    Test SABR model construction and Vanilla option pricing.
+    Test Monte Carlo simulation with SABR and and Hull-White model.
     """
 
     def test_mc_with_sabr_model(self):
@@ -60,6 +68,26 @@ class TestMonteCarloSimulation(unittest.TestCase):
         plt.plot(ref_strikes, vols3)
         plt.plot(ref_strikes, vols4)
         # plt.show()
+
+
+    def test_mc_with_hull_white_model(self):
+        discount_curve    = FlatForwardCurve(0.02)
+        mean_reversion    = 0.03
+        volatility_times  = np.array([ 1.0, 2.0, 5.0 ])
+        volatility_values = np.array([ 100,  80,  70 ]) * 1e-4
+        model = HullWhiteModel(discount_curve, mean_reversion, volatility_times, volatility_values)
+        print('')
+        times = np.linspace(0.0, 10.0, 11)
+        n_paths = 2**16
+        sim = MonteCarloSimulation(model,times,n_paths, showProgress=True)
+        self.assertEqual(sim.X.shape, (len(times), model.size(), n_paths))
+        zcb = model.zero_bond_payoff(sim.X[-1,:,:], 10.0, 20.0)
+        num = model.numeraire(sim.X[-1,:,:], 10.0)
+        zcb_0T = np.mean(zcb / num)
+        mc_spread = np.log(zcb_0T / discount_curve.discount(20.0)) / 20.0
+        # print(mc_spread)
+        self.assertLess(np.abs(mc_spread), 5.0e-5)
+
 
 
 if __name__ == '__main__':
