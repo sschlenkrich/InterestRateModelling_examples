@@ -35,7 +35,7 @@ class TestSwaption(unittest.TestCase):
         print('Annuity:       %11.2f' % (swaption.annuity()))
         print('Vega:          %11.2f' % (swaption.vega()))
         #
-        pprint(swaption.bondOptionDetails())
+        pprint(swaption.bond_option_details())
         #
         self.assertAlmostEqual(swaption.npv(), swaption.npv_via_bachelier(), places=16)
         

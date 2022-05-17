@@ -9,71 +9,77 @@ from src.swap import Swap
 class Swaption:
 
     # Python constructor
-    def __init__(self, underlyingSwap, expiryDate, normalVolatility):
-        self.underlyingSwap = underlyingSwap
+    def __init__(self, underlying_swap, expiryDate, normalVolatility):
+        self.underlying_swap = underlying_swap
         self.exercise = ql.EuropeanExercise(expiryDate)
-        self.swaption = ql.Swaption(self.underlyingSwap.swap,self.exercise,ql.Settlement.Physical)
+        self.swaption = ql.Swaption(self.underlying_swap.swap,self.exercise,ql.Settlement.Physical)
         self.normalVolatility = normalVolatility
         volHandle = ql.QuoteHandle(ql.SimpleQuote(normalVolatility))
-        engine = ql.BachelierSwaptionEngine(self.underlyingSwap.discHandle,volHandle,ql.Actual365Fixed())
+        engine = ql.BachelierSwaptionEngine(self.underlying_swap.discHandle,volHandle,ql.Actual365Fixed())
         self.swaption.setPricingEngine(engine)
+
+    def fixed_rate(self):
+        return self.underlying_swap.fixedRate
+
+    def call_or_put(self):
+        return +1.0 if self.underlying_swap.payerOrReceiver==ql.VanillaSwap.Payer else -1.0
 
     def npv(self):
         return self.swaption.NPV()
 
     def fairRate(self):
-        return self.underlyingSwap.fairRate()
+        return self.underlying_swap.fairRate()
 
     def annuity(self):
-        return self.underlyingSwap.annuity()
+        return self.underlying_swap.annuity()
     
     def npv_via_bachelier(self):
         """
         Calculate NPV manually using Bachelier formula.
         This method is intended to validate QuantLib's engine.
         """
-        refDate  = self.underlyingSwap.discHandle.referenceDate()
+        refDate  = self.underlying_swap.discHandle.referenceDate()
         T = ql.Actual365Fixed().yearFraction(refDate,self.exercise.dates()[0])
-        CallOrPutOnS = 1.0 if self.underlyingSwap.payerOrReceiver==ql.VanillaSwap.Payer else -1.0
-        return self.annuity() * bachelier(self.underlyingSwap.fixedRate,self.fairRate(),self.normalVolatility,T,CallOrPutOnS)
+        CallOrPutOnS = 1.0 if self.underlying_swap.payerOrReceiver==ql.VanillaSwap.Payer else -1.0
+        return self.annuity() * bachelier(self.underlying_swap.fixedRate,self.fairRate(),self.normalVolatility,T,CallOrPutOnS)
 
     def vega(self):
-        refDate  = self.underlyingSwap.discHandle.referenceDate()
+        refDate  = self.underlying_swap.discHandle.referenceDate()
         T = ql.Actual365Fixed().yearFraction(refDate,self.exercise.dates()[0])
-        return self.annuity() * bachelier_vega(self.underlyingSwap.fixedRate,self.fairRate(),self.normalVolatility,T) * 1.0e-4  # 1bp scaling
+        return self.annuity() * bachelier_vega(self.underlying_swap.fixedRate,self.fairRate(),self.normalVolatility,T) * 1.0e-4  # 1bp scaling
 
-    def bondOptionDetails(self):
+    def bond_option_details(self):
         """
         Calculate expiryTime, (coupon) startTims, payTimes, cashFlows, strike and
         c/p flag as inputs to Hull White analytic formula.
         """
         details = {}
-        details['callOrPut'] = 1.0 if self.underlyingSwap.payerOrReceiver==ql.VanillaSwap.Receiver else -1.0
-        details['strike']    = 0.0
-        refDate  = self.underlyingSwap.discHandle.referenceDate()
-        details['expiryTime'] = ql.Actual365Fixed().yearFraction(refDate,self.exercise.dates()[0])
+        details['call_or_put']  = 1.0 if self.underlying_swap.payerOrReceiver==ql.VanillaSwap.Receiver else -1.0
+        details['strike_price'] = 0.0
+        refDate  = self.underlying_swap.discHandle.referenceDate()
+        details['expiry_time'] = ql.Actual365Fixed().yearFraction(refDate,self.exercise.dates()[0])
         fixedLeg = [ [ ql.Actual365Fixed().yearFraction(refDate,cf.date()), cf.amount() ]
-                     for cf in self.underlyingSwap.swap.fixedLeg() ]
-        details['fixedLeg'] = np.array(fixedLeg)
+                     for cf in self.underlying_swap.swap.fixedLeg() ]
+        details['fixed_leg'] = np.array(fixedLeg)
         floatLeg = [ [ ql.Actual365Fixed().yearFraction(refDate,ql.as_coupon(cf).accrualStartDate()),
                        ((1 + ql.as_coupon(cf).accrualPeriod()*ql.as_coupon(cf).rate()) *
-                        self.underlyingSwap.discHandle.discount(ql.as_coupon(cf).accrualEndDate()) /
-                        self.underlyingSwap.discHandle.discount(ql.as_coupon(cf).accrualStartDate()) - 1.0) *
+                        self.underlying_swap.discHandle.discount(ql.as_coupon(cf).accrualEndDate()) /
+                        self.underlying_swap.discHandle.discount(ql.as_coupon(cf).accrualStartDate()) - 1.0) *
                        ql.as_coupon(cf).nominal() 
                        ] 
-                     for cf in self.underlyingSwap.swap.floatingLeg() ]
-        details['floatLeg'] = np.array(floatLeg)    
+                     for cf in self.underlying_swap.swap.floatingLeg() ]
+        details['float_leg'] = np.array(floatLeg)
         payTimes = [ floatLeg[0][0]  ]          +       \
                    [ cf[0] for cf in floatLeg ] +       \
                    [ cf[0] for cf in fixedLeg ] +       \
                    [ ql.Actual365Fixed().yearFraction(refDate,ql.as_coupon(
-                     self.underlyingSwap.swap.floatingLeg()[-1]).accrualEndDate()) ]
-        caschflows = [ -ql.as_coupon(self.underlyingSwap.swap.floatingLeg()[0]).nominal() ] +  \
+                     self.underlying_swap.swap.floatingLeg()[-1]).accrualEndDate()) ]
+        caschflows = [ -ql.as_coupon(self.underlying_swap.swap.floatingLeg()[0]).nominal() ] +  \
                      [ -cf[1] for cf in floatLeg ] +    \
                      [  cf[1] for cf in fixedLeg ] +    \
-                     [ ql.as_coupon(self.underlyingSwap.swap.floatingLeg()[0]).nominal() ]
-        details['payTimes'  ] = np.array(payTimes)
-        details['cashFlows'] = np.array(caschflows)
+                     [ ql.as_coupon(self.underlying_swap.swap.floatingLeg()[0]).nominal() ]
+        details['pay_times'  ] = np.array(payTimes)
+        details['cash_flows'] = np.array(caschflows)
         return details
 
 
@@ -89,5 +95,5 @@ def create_swaption(expiryTerm, swapTerm, discCurve, projCurve, strike='ATM', pa
         swap = Swap(startDate,endDate,0.0,discCurve,projCurve)
         strike = swap.fairRate()
     swap = Swap(startDate,endDate,strike,discCurve,projCurve,payerOrReceiver)
-    swaption = swaption = Swaption(swap,expiryDate,normalVolatility)
+    swaption = Swaption(swap,expiryDate,normalVolatility)
     return swaption
