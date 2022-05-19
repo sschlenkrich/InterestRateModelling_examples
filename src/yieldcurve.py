@@ -2,6 +2,7 @@
 import QuantLib as ql
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas
 
 class YieldCurve:
@@ -46,5 +47,18 @@ class YieldCurve:
     def referenceDate(self):
         return self.referenceDate()
 
-# end of YieldCurve
 
+class FlatForwardCurve:
+    """
+    A simple flat yield curve mainly used for testing.
+    """
+
+    # Python constructor
+    def __init__(self, rate):
+        self.rate = rate
+
+    def discount(self, T):
+        return np.exp(-self.rate * T)
+
+    def forwardRate(self,time):
+        return self.rate
