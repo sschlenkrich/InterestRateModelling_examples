@@ -146,6 +146,10 @@ class HullWhiteModelWithDiscreteNumeraire(HullWhiteModel):
     def __init__(self, yield_curve, mean_reversion, volatility_times, volatility_values):
         HullWhiteModel.__init__(self,yield_curve, mean_reversion, volatility_times, volatility_values)
 
+    def numeraire(self, X, t):
+        """Numeraire price for a given simulated state X."""
+        return np.exp(X[1])
+
     def evolve(self, t0, X0, dt, dW):
         """
         Evolve X(t0) -> X(t0+dt) using independent Brownian increments dW.

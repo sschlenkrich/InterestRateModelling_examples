@@ -98,10 +98,10 @@ class AmcSolverOnlyExerciseRegression(AmcSolver):
         N0 = self.simulation.model.numeraire(x0, T0)
         N1 = self.simulation.model.numeraire(x1, T1)
         if self.minSampleIdx>0 and T0>0:   # do not use regression for the last roll-back
-            C = self.controls(x0[:,:self.minSampleIdx], T0)
+            C = self.controls(x1[:,:self.minSampleIdx], T1)
             O = U1[:self.minSampleIdx] - H1[:self.minSampleIdx]
             R = Regression(C,O,self.max_polynomial_degree)
-            I = R.value(self.controls(x0, T0))
+            I = R.value(self.controls(x1, T1))
         else:
             I = U1 - H1
         V0 = N0 / N1 * ((I>0.0) * U1 + (I<=0.0) * H1)
