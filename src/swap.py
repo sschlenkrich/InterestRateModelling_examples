@@ -37,7 +37,7 @@ class Swap:
         # interest rate details
         index = ql.Euribor(floatLegTenor,self.projHandle)
         spread = 0.0   # no floating rate spread applied
-        fixedLegDayCounter = ql.Thirty360()
+        fixedLegDayCounter = ql.Thirty360(ql.Thirty360.BondBasis)
         floatLegDayCounter = index.dayCounter()
         # paymentAdjustment  = ql.Following ... not exposed to user via Python
         # swap creation
