@@ -75,7 +75,10 @@ class SimpsonIntegration(DensityIntegration):
         for i in range(x0.shape[0]):
             mu = self.hwModel.T_forward_expectation(T0, x0[i], T1)
             fx = np.array([ V[k] * norm.pdf((x1[k]-mu)/sigma)/sigma for k in range(x1.shape[0])])
-            I = integrate.simps(fx, x1)
+            try:
+                I = integrate.simpson(fx, x=x1)  # new interface
+            except AttributeError:
+                I = integrate.simps(fx, x1)  # deprecated scipy interface
             V0[i] = self.hwModel.zero_bond(T0,x0[i],T1) * I
         return (x0, V0)
 
