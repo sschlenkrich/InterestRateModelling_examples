@@ -1,0 +1,17 @@
+# Create environment via
+# conda env create -f environment.yml
+name: interest-rate-modelling
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - ipykernel
+  - jupyter
+  - python
+  - matplotlib
+  - numpy
+  - openpyxl
+  - pandas
+  - QuantLib-Python
+  - scipy
+  - tqdm
