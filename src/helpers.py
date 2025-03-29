@@ -36,5 +36,8 @@ def bachelier_vega(strike, forward, sigma, T):
 def bachelier_implied_vol(price, strike, forward, T, callOrPut):
     def objective(sigma):
         return bachelier(strike, forward, sigma, T, callOrPut) - price
-    return brentq(objective,1e-4, 1e-1, xtol=1.0e-8)
+    try:
+        return brentq(objective,1e-4, 1e-1, xtol=1.0e-8)
+    except Exception:
+        return 0.0  # fall-back
 
