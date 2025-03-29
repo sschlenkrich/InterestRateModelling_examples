@@ -9,7 +9,7 @@ class YieldCurve:
 
     # Python constructor
     def __init__(self, terms, rates):
-        today = ql.Settings.getEvaluationDate(ql.Settings.instance())
+        today = ql.Settings.instance().evaluationDate
         self.terms = [ '0d' ] + terms
         self.dates = [ ql.WeekendsOnly().advance(today,ql.Period(term),ql.ModifiedFollowing) for term in self.terms ]
         self.rates = [rates[0]] + rates

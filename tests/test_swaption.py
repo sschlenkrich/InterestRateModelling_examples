@@ -17,7 +17,7 @@ class TestSwaption(unittest.TestCase):
 
     def test_swaption_setup(self):
         today = ql.Date(3,9,2018)
-        ql.Settings.setEvaluationDate(ql.Settings.instance(),today)
+        ql.Settings.instance().evaluationDate = today
         discCurve = YieldCurve(['30y'], [0.03])
         projCurve = YieldCurve(['30y'], [0.04])
         startDate = ql.Date(3, 9, 2028)

@@ -19,6 +19,7 @@ class TestYieldCurve(unittest.TestCase):
         yc = YieldCurve(terms, rates)
         #
         today = ql.Settings.instance().evaluationDate
+        print('\nToday: ' + str(today))
         ql_ytsh = ql.YieldTermStructureHandle(
             ql.FlatForward(today,rates[0],ql.Actual365Fixed()))
         #
