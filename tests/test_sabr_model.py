@@ -31,7 +31,7 @@ class TestSabrModel(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestSabrModel))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSabrModel))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(not result.wasSuccessful())
 

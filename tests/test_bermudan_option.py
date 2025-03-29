@@ -114,7 +114,7 @@ class TestBermudanOption(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestBermudanOption))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestBermudanOption))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(not result.wasSuccessful())
 

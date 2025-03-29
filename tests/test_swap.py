@@ -33,7 +33,7 @@ class TestSwap(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestSwap))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestSwap))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(not result.wasSuccessful())
 

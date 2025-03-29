@@ -92,7 +92,7 @@ class TestMonteCarloSimulation(unittest.TestCase):
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestMonteCarloSimulation))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(TestMonteCarloSimulation))
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(not result.wasSuccessful())
 
